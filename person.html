@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Excel Record Search</title>
+
+    <!-- SheetJS -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            margin-bottom: 15px;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input, button {
+            padding: 10px;
+            font-size: 16px;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        .result {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .result img {
+            max-width: 150px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+
+        .field {
+            margin-bottom: 8px;
+        }
+
+        .label {
+            font-weight: bold;
+            width: 200px;
+            display: inline-block;
+        }
+
+        .not-found {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Search Record (From Excel)</h2>
+
+    <div class="search-box">
+        <input type="number" id="regNoInput" placeholder="Enter RegNo">
+        <button onclick="searchRecord()">Search</button>
+    </div>
+
+    <div id="notFound" class="not-found"></div>
+
+    <div id="result" class="result">
+        <img id="photo" src="" alt="Photo">
+
+        <div class="field"><span class="label">Reg No:</span><span id="RegNo"></span></div>
+        <div class="field"><span class="label">Full Name (NP):</span><span id="FullName_NP"></span></div>
+        <div class="field"><span class="label">Full Name (EN):</span><span id="FullName_EN"></span></div>
+        <div class="field"><span class="label">DOB:</span><span id="DOB"></span></div>
+        <div class="field"><span class="label">Age:</span><span id="Age"></span></div>
+        <div class="field"><span class="label">Gender:</span><span id="Gender"></span></div>
+        <div class="field"><span class="label">Address:</span><span id="Address"></span></div>
+        <div class="field"><span class="label">Contact:</span><span id="Contact"></span></div>
+        <div class="field"><span class="label">License No:</span><span id="LicenseNo"></span></div>
+        <div class="field"><span class="label">Operating Route:</span><span id="OperatingRoute"></span></div>
+    </div>
+</div>
+
+<script>
+    let excelData = [];
+
+    // 🔹 Load Excel automatically when page loads
+    window.onload = () => {
+        fetch("Book1.xlsx")
+            .then(res => res.arrayBuffer())
+            .then(data => {
+                const workbook = XLSX.read(data, { type: "array" });
+                const sheetName = workbook.SheetNames[0];
+                const sheet = workbook.Sheets[sheetName];
+
+                // Convert sheet → JSON
+                excelData = XLSX.utils.sheet_to_json(sheet);
+                console.log("Excel Loaded:", excelData);
+            })
+            .catch(err => {
+                alert("Failed to load Excel file");
+                console.error(err);
+            });
+    };
+
+    function searchRecord() {
+        const regNo = document.getElementById("regNoInput").value;
+        const resultDiv = document.getElementById("result");
+        const notFoundDiv = document.getElementById("notFound");
+
+        resultDiv.style.display = "none";
+        notFoundDiv.innerText = "";
+
+        const record = excelData.find(r => String(r.RegNo) === regNo);
+
+        if (!record) {
+            notFoundDiv.innerText = "No record found for RegNo: " + regNo;
+            return;
+        }
+
+        // Map Excel columns → UI
+        document.getElementById("photo").src = record.PhotoPath;
+        document.getElementById("RegNo").innerText = record.RegNo;
+        document.getElementById("FullName_NP").innerText = record.FullName_NP;
+        document.getElementById("FullName_EN").innerText = record.FullName_EN;
+        document.getElementById("DOB").innerText = record.DOB;
+        document.getElementById("Age").innerText = record.Age;
+        document.getElementById("Gender").innerText = record.Gender;
+        document.getElementById("Address").innerText = record.Address;
+        document.getElementById("Contact").innerText = record.Contact;
+        document.getElementById("LicenseNo").innerText = record.LicenseNo;
+        document.getElementById("OperatingRoute").innerText = record.OperatingRoute;
+
+        resultDiv.style.display = "block";
+    }
+</script>
+
+</body>
+</html>
